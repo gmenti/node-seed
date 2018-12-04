@@ -4,8 +4,20 @@
   "description": "Lending manager backend",
   "main": "./src/app.js",
   "scripts": {
+    "dev:start": "node ./src/app.js",
+    "dev:watch": "nodemon ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "dotenv": "^6.1.0",
+    "express": "^4.16.4",
+    "knex": "^0.15.2",
+    "moment-timezone": "^0.5.23",
+    "mysql2": "^1.6.4",
+    "winston": "^3.1.0"
+  }
 }
