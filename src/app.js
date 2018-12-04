@@ -27,6 +27,14 @@ app.get(['/', '/status'], (req, res) => {
     });
 });
 
+app.use('/users', require('./routes/usersRoute'));
+app.use((err, req, res, next) => {
+  console.log('oi');
+});
+app.all('*', (req, res) => {
+  res.sendStatus(404);
+});
+
 app.listen(PORT, err => {
   if (err) {
     logger.error(err.message);
