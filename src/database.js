@@ -1,6 +1,7 @@
+const logger = require('./logger');
 const settings = require('./settings');
 
-module.exports = require('knex')({
+const database = require('knex')({
   client: 'mysql2',
   connection: {
     host: settings.DB_HOST,
@@ -24,3 +25,24 @@ module.exports = require('knex')({
     tableName: 'migrations',
   },
 });
+
+database.on('query', query => {
+  let sql = query.sql;
+  query.bindings.forEach(binding => {
+    sql = sql.replace('?', binding);
+  });
+  logger.info(sql);
+});
+
+database.addCreatedAt = table =>
+  table
+    .timestamp('createdAt')
+    .notNullable()
+    .defaultTo(database.fn.now());
+
+database.addUpdatedAt = table =>
+  table
+    .timestamp('updatedAt')
+    .defaultTo(database.raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
+
+module.exports = database;

@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const url = require('url');
 const { PORT, BODY_LIMIT } = require('./settings');
 const database = require('./database');
 const logger = require('./logger');
 
 const app = express();
+app.use(helmet());
 app.use(cors());
 app.use(
   bodyParser.json({
@@ -13,26 +16,36 @@ app.use(
   }),
 );
 
-app.get(['/', '/status'], (req, res) => {
-  return database
-    .raw('SELECT 1')
-    .then(() => {
-      res.sendStatus(204);
-    })
-    .catch(err => {
-      logger.error(
-        `Failed to connect to database in ${err.address}:${err.port}`,
-      );
-      res.status(400).send({ message: 'Failed to connect to database.' });
-    });
+app.get(['/', '/status'], async (req, res, next) => {
+  try {
+    await database.raw('SELECT 1');
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.use('/users', require('./routes/usersRoute'));
-app.use((err, req, res, next) => {
-  console.log('oi');
-});
+app.use('/users', require('./http/routes/usersRoute'));
+
 app.all('*', (req, res) => {
   res.sendStatus(404);
+});
+
+app.use((err, req, res, next) => {
+  let code = 500;
+  const data = {};
+  if (err.sqlState) {
+    data.message = err.sqlMessage;
+  } else if (err.isJoi) {
+    code = 422;
+    data.message = 'Validation failed';
+    data.details = err.details;
+  } else {
+    console.log(err);
+    data.message = err.message;
+  }
+  console.log(code);
+  res.status(code).send(data);
+  logger.error(data.message);
 });
 
 app.listen(PORT, err => {

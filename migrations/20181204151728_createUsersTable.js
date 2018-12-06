@@ -15,6 +15,8 @@ exports.up = function(knex) {
       .unsigned()
       .defaultTo(0);
     table.boolean('isAdmin').defaultTo(false);
+    database.addCreatedAt(table);
+    database.addUpdatedAt(table);
   });
 };
 
