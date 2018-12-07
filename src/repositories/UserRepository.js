@@ -1,59 +1,49 @@
-const database = require('../database');
-const tableName = 'users';
+const CryptoJS = require('crypto-js');
+const Repository = require('./Repository');
+const { SECRET_KEY } = require('../settings');
 
-class UserRepository {
-  static list(options) {
-    const { order, limit, filter } = options;
-    const query = this.all();
+const encryptPassword = password =>
+  CryptoJS.SHA512(`${password}:${SECRET_KEY}`).toString();
 
-    if (order) {
-      const [field, sort] = order;
-      query.orderBy(field, sort);
-    }
-
-    if (limit) {
-      const [start, end] = limit;
-      query.limit(end - start).offset(start);
-    }
-
-    if (filter) {
-      Object.keys(filter).forEach(key => {
-        const value = filter[key];
-        if (typeof value === 'string') {
-          query.where(key, 'like', `%${value}%`);
-        } else {
-          query.where(key, value);
-        }
-      });
-    }
-
-    return query;
-  }
-  static all() {
-    return database.select().from(tableName);
-  }
-  static find(id) {
-    return database
-      .select()
-      .from(tableName)
-      .where('id', id)
-      .first();
+class UserRepository extends Repository {
+  static get tableName() {
+    return 'users';
   }
   static create(data) {
-    return database.table(tableName).insert(data);
+    const records = [];
+    if (data instanceof Array) {
+      data.forEach(record => {
+        record.password = encryptPassword(record.password);
+        records.push(record);
+      });
+    } else {
+      records.push(data);
+    }
+    return super.create(data);
   }
-  static update(id, data) {
-    return database
-      .table(tableName)
-      .where('id', id)
+  static findByEmail(email) {
+    return this.all()
+      .where('email', email)
+      .first();
+  }
+  static findUserByTokenHash(tokenHash) {
+    return this.all()
+      .select('users.*')
+      .innerJoin('tokens', 'tokens.userId', 'users.id')
+      .where('tokens.hash', tokenHash)
+      .where('tokens.deleted', false)
       .first()
-      .update(data);
   }
-  static delete(id) {
-    return database
-      .table(tableName)
-      .where('id', id)
-      .delete();
+  static async changePassword({ email, password, newPassword }) {
+    const user = await this.findUserByCredentials({ email, password });
+    await this.update(user.id, { password: encryptPassword(newPassword) });
+  }
+  static async findUserByCredentials({ email, password }) {
+    const user = await this.findByEmail(email);
+    if (!user || user.password !== encryptPassword(password)) {
+      throw new Error('invalid_credentials');
+    }
+    return user;
   }
 }
 

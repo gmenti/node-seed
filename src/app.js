@@ -24,6 +24,7 @@ app.get(['/', '/status'], async (req, res, next) => {
   }
 });
 
+app.use('/auth', require('./http/routes/authRoutes'));
 app.use('/users', require('./http/routes/usersRoute'));
 
 app.all('*', (req, res) => {

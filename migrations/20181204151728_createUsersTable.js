@@ -15,8 +15,12 @@ exports.up = function(knex) {
       .unsigned()
       .defaultTo(0);
     table.boolean('isAdmin').defaultTo(false);
+    table.boolean('disabled').defaultTo(false);
+    table.boolean('deleted').defaultTo(false);
     database.addCreatedAt(table);
     database.addUpdatedAt(table);
+    table.timestamp('deletedAt');
+    table.unique(['email', 'deleted']);
   });
 };
 

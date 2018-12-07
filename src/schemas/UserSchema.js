@@ -64,7 +64,7 @@ class UserSchema extends Schema {
     return this.validate(schema, data);
   }
 
-  static async update({ id }, data) {
+  static update({ id }, data) {
     const schema = Joi.object({
       id: Joi.number()
         .integer()
@@ -86,11 +86,41 @@ class UserSchema extends Schema {
     return this.validate(schema, { ...data, id });
   }
 
-  static async delete(data) {
+  static delete(data) {
     const schema = Joi.object({
       id: Joi.number()
         .integer()
         .min(1),
+    });
+
+    return this.validate(schema, data);
+  }
+
+  static changePassword(data) {
+    const schema = Joi.object({
+      email: Joi.string()
+        .email()
+        .required(),
+      password: Joi.string()
+        .min(8)
+        .required(),
+      newPassword: Joi.string()
+        .min(8)
+        .required()
+        .disallow(Joi.ref('password')),
+    });
+
+    return this.validate(schema, data);
+  }
+
+  static emailPasswordLogin(data) {
+    const schema = Joi.object({
+      email: Joi.string()
+        .email()
+        .required(),
+      password: Joi.string()
+        .min(8)
+        .required(),
     });
 
     return this.validate(schema, data);
