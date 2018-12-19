@@ -6,12 +6,12 @@ class TokenRepository extends Repository {
   }
   static findByHash(hash) {
     return this.all()
-      .where('hash', hash)
+      .where(`${this.tableName}.hash`, hash)
       .first();
   }
   static findByUserId(userId) {
     return this.all()
-      .where('userId', userId)
+      .where(`${this.tableName}.userId`, userId)
       .first();
   }
 }

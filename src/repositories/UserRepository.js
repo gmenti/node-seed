@@ -23,12 +23,12 @@ class UserRepository extends Repository {
   }
   static findByEmail(email) {
     return this.all()
-      .where('email', email)
+      .where(`${this.tableName}.email`, email)
       .first();
   }
   static findUserByTokenHash(tokenHash) {
     return this.all()
-      .select('users.*')
+      .select(`${this.tableName}.*`)
       .innerJoin('tokens', 'tokens.userId', 'users.id')
       .where('tokens.hash', tokenHash)
       .where('tokens.deleted', false)

@@ -5,10 +5,11 @@ const bearerAuthMiddleware = passport.authenticate('bearer', {
 });
 
 const adminMiddleware = (req, res, next) => {
-  if (!req.user.isAdmin) {
-    res.sendStatus(401);
+  if (req.user.isAdmin) {
+    next();
+  } else {
+    next(new Error('invalid_permission'))
   }
-  next();
 };
 
 module.exports = {
